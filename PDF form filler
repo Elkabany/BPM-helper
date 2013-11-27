@@ -1,0 +1,174 @@
+package com.sapit.utils.pdf;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.AcroFields;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfStamper;
+
+/**
+ * @author Abubakr Elkabany
+ * Last edit : 10/2013
+ */
+public class PDF_FormFiller 
+{
+	public String Fill_PDF_Template(Map fields, String templeteName, String output) 
+	{
+		System.out.println("PDF templete name : "+templeteName);
+		String result = "0:Sucess";
+		PdfReader reader = null;
+		PdfStamper stamper = null;
+		try 
+		{	
+			reader = new PdfReader(templeteName);
+			stamper = new PdfStamper(reader,
+					new FileOutputStream(output));
+			AcroFields form = stamper.getAcroFields();
+			form.setFieldProperty("description", "textfont", null, null);
+	
+			Iterator iterator = fields.entrySet().iterator();
+			while (iterator.hasNext()) 
+			{
+				Map.Entry mapEntry = (Map.Entry) iterator.next();
+				Object key = mapEntry.getKey();
+				String keyStr =" ";
+				if(key != null)
+					keyStr = key.toString();
+				Object value = mapEntry.getValue();
+				String valueStr =" ";
+				if(value != null)
+					valueStr = value.toString();
+				
+				form.setField(keyStr, valueStr);
+			}
+			/*		
+			Set<String> keys = fields.keySet();
+			for (String key : keys) 
+			{
+				Object value = fields.get(key);
+				if(value instanceof String)
+					form.setField(key, value.toString());
+				else
+				{
+					System.out.println("----------------- ERROR : CREATE PDF ---------------");
+					System.out.println(key + "value is not STRING");
+					form.setField(key, " ");
+				}				
+			}
+			*/
+		}
+		catch(IOException ioX)
+		{
+			System.out.println("----------------- ERROR : CREATE PDF ---------------");
+			System.out.println(ioX.getMessage());
+			result = "1:PDF printout creation failed - Error occuer with file system";
+			System.out.println("--------------------------");
+			Set<String> keys = fields.keySet();
+			for (String key : keys) 
+			{
+				System.out.println(key +":"+fields.get(key));
+			}
+			System.out.println("--------------------------");
+		} 
+		catch (DocumentException e) 
+		{			
+			System.out.println("----------------- ERROR : CREATE PDF ---------------");
+			System.out.println(e.getMessage());
+			result = "2:PDF printout creation failed - Error occuer with PDF document";
+			System.out.println("--------------------------");
+			Set<String> keys = fields.keySet();
+			for (String key : keys) 
+			{
+				System.out.println(key +":"+fields.get(key));
+			}
+			System.out.println("--------------------------");
+		}
+		finally
+		{
+			if(stamper != null)
+			{
+				try 
+				{
+					stamper.close();
+				}
+				catch (Exception e) 
+				{
+					System.out.println(e.getMessage());
+				}
+			}
+			if(reader != null)
+				reader.close();
+		}
+
+		return result;
+	}
+
+	public String fillTemplete(String fieldsName, String fieldsValue,String templeteName, String output) 
+	{
+		System.out.println("----------------- CREATE PDF ---------------");
+		System.out.println("PDF templete name : "+templeteName);
+		String result = "0:Sucess";
+		PdfReader reader = null;
+		PdfStamper stamper = null;
+		try 
+		{
+			String[] fieldsValueArr = fieldsValue.split(",");
+	
+			reader = new PdfReader(templeteName);
+			stamper = new PdfStamper(reader,
+					new FileOutputStream(output));
+			AcroFields form = stamper.getAcroFields();
+			form.setFieldProperty("description", "textfont", null, null);
+	
+			String[] fieldsNames = fieldsName.split(",");
+			for (int i = 0; i < fieldsNames.length; i++) 
+			{
+				form.setField(fieldsNames[i], fieldsValueArr[i]);
+			}
+		}
+		catch(IOException ioX)
+		{
+			System.out.println("----------------- ERROR : CREATE PDF ---------------");
+			System.out.println(ioX.getMessage());
+			System.out.println("------------NAMES--------------");
+			System.out.println(fieldsName);
+			System.out.println("------------VALUES-------------");
+			System.out.println(fieldsValue);
+			System.out.println("--------------------------");
+			result = "1:PDF printout creation failed - Error occuer with file system";
+		} 
+		catch (DocumentException e) 
+		{
+			System.out.println("----------------- ERROR : CREATE PDF ---------------");
+			System.out.println(e.getMessage());
+			System.out.println("------------NAMES--------------");
+			System.out.println(fieldsName);
+			System.out.println("------------VALUES-------------");
+			System.out.println(fieldsValue);
+			System.out.println("--------------------------");
+			result = "2:PDF printout creation failed - Error occuer with PDF document";
+		}
+		finally
+		{
+			if(stamper != null)
+			{
+				try 
+				{
+					stamper.close();
+				}
+				catch (Exception e) 
+				{
+					System.out.println(e.getMessage());
+				}
+			}
+			if(reader != null)
+				reader.close();
+		}
+		return result;
+	}
+}
